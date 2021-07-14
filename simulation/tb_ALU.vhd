@@ -22,7 +22,6 @@ BEGIN
 			zero        => tb_zero
 		);
 		-- Stimulus process
-		
 stim_proc : PROCESS
 BEGIN
 	tb_a1          <= x"00000003";
