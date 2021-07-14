@@ -1,0 +1,7 @@
+test/
+output_files/
+db/
+incremental_db/
+simulation/modelsim/
+.qsys_edit/
+*.bak
