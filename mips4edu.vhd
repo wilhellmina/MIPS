@@ -80,6 +80,8 @@ architecture behavior of mips4edu is
     --signal for mux pc out
     signal mux_pc_out :std_logic_vector(31 downto 0);
 
+    --signal for ctrl ALU
+    signal ctrl_signal_alu2 :std_logic;
 
     component MUX
     GENERIC (
@@ -157,8 +159,8 @@ architecture behavior of mips4edu is
 		W : INTEGER := 32
 	);
 	PORT (
-		input  : IN STD_LOGIC_VECTOR(W - 1 DOWNTO 0);
-		output : OUT STD_LOGIC_VECTOR(W - 1 DOWNTO 0)
+		addressIN  : IN STD_LOGIC_VECTOR(W - 1 DOWNTO 0);
+		addressOUT : OUT STD_LOGIC_VECTOR(W - 1 DOWNTO 0)
 	);
     end component;
 
@@ -289,17 +291,19 @@ architecture behavior of mips4edu is
             W => 32
         )
         port map(
-            input => se_out,
-            output => shifted2bit
+            addressIN => se_out,
+            addressOUT => shifted2bit
         );
 
         ALU_2:ALU
         port map(
-            a1 => shifted2bit ,
+            a1 => shifted2bit,
             a2 => added_pc,
             alu_control => "0010",
             alu_result => alu2_out
         );
+
+        ctrl_signal_alu2 <= branch AND is_zero;
 
         mux_pc_alu:MUX
         generic map(
@@ -309,7 +313,7 @@ architecture behavior of mips4edu is
             mux_in0 => added_pc,
             mux_in1 => alu2_out,
             mux_out => mux_pc_out,
-            mux_ctl => Branch AND is_zero
+            mux_ctl => ctrl_signal_alu2
         );
 
-    end architecture;
+    end behavior;
