@@ -8,7 +8,7 @@ entity mips4edu is
     );
 end entity;
 
-architecture RTL of mips4edu is
+architecture behavior of mips4edu is
     --signal for programcounter interconnect
     signal PC_IN,PC_OUT : std_logic_vector(31 downto 0);
 
@@ -74,6 +74,13 @@ architecture RTL of mips4edu is
     --signals for ALU
     signal mux_reg2_out:std_logic_vector(31 downto 0);
     
+    --signals for MUX datamem
+    signal mux_datamem_out :std_logic_vector(31 downto 0);
+
+    --signal for mux pc out
+    signal mux_pc_out :std_logic_vector(31 downto 0);
+
+
     component MUX
     GENERIC (
 		N : INTEGER := 32
@@ -99,7 +106,7 @@ architecture RTL of mips4edu is
 
     --ALU
     signal is_zero :std_logic;
-    signal alu_out :std_logic_vector(31 downto 0);
+    signal alu_out,alu2_out :std_logic_vector(31 downto 0);
     component ALU
     PORT (
 		a1           : IN STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -133,8 +140,32 @@ architecture RTL of mips4edu is
 	);
     end component;
 
+    --pc adder 4byte
+    signal added_pc :std_logic_vector(31 downto 0);
+    component programCounterAdder
+    PORT (
+		programCounterIn   : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+		programCounterOut  : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
+	);
+    end component;
+
+    --shiftleft2bit 
+    signal shifted2bit :std_logic_vector(31 downto 0);
+    component shiftLeft
+    GENERIC (
+		N : INTEGER := 2;
+		W : INTEGER := 32
+	);
+	PORT (
+		input  : IN STD_LOGIC_VECTOR(W - 1 DOWNTO 0);
+		output : OUT STD_LOGIC_VECTOR(W - 1 DOWNTO 0)
+	);
+    end component;
+
 
     begin
+        PC_IN <= mux_pc_out;
+
         --program counter
         PC:programCounter
         port map(
@@ -186,7 +217,7 @@ architecture RTL of mips4edu is
         readRegister1 => instruction(25 downto 21),
 		readRegister2 => instruction(20 downto 16),
 		writeRegister => writereg, --from mux ofc 5bit
-		writeData    --to be filled
+		writeData => mux_datamem_out,
 		registerWrite => RegWrite, --like write enable
 		readData1 => reg1out,
 		readData2 => reg2out
@@ -216,7 +247,7 @@ architecture RTL of mips4edu is
             mux_out => mux_reg2_out
         );
 
-        ALU:ALU
+        ALU_1:ALU
         port map(
             a1 => reg1out,
             a2 => mux_reg2_out,
@@ -225,7 +256,60 @@ architecture RTL of mips4edu is
             zero => is_zero
         );
 
+        datamem:dataMemory
+        port map(
+            address => alu_out,
+            writeData => reg2out,
+            readData => datamem_out,
+            memRead => memRead,
+            memWrite => memWrite
+        );
 
+        mux_datamem:MUX
+        generic map(
+            N => 32
+        )
+        port map(
+            MUX_IN1 => datamem_out,
+            MUX_IN0 => alu_out,
+            MUX_OUT => mux_datamem_out,
+            mux_ctl => memToRegister
+        );
+
+        --program counter adder
+        pc_adder4:programCounterAdder
+        port map(
+            programCounterIn => PC_OUT,
+            programCounterOut => added_pc
+        );
+
+        sLeft:shiftLeft
+        generic map(
+            N => 2,
+            W => 32
+        )
+        port map(
+            input => se_out,
+            output => shifted2bit
+        );
+
+        ALU_2:ALU
+        port map(
+            a1 => shifted2bit ,
+            a2 => added_pc,
+            alu_control => "0010",
+            alu_result => alu2_out
+        );
+
+        mux_pc_alu:MUX
+        generic map(
+            N => 32
+        )
+        port map(
+            mux_in0 => added_pc,
+            mux_in1 => alu2_out,
+            mux_out => mux_pc_out,
+            mux_ctl => Branch AND is_zero
+        );
 
     end architecture;
-
