@@ -179,7 +179,7 @@ architecture behavior of mips4edu is
         --instruction memory
         IM:instructionMemory
         PORT map(
-		readAddress => PC_OUT,
+		readAddress => X"00400000",
 		instruction => instruction
 	    );
 
