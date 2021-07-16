@@ -4,7 +4,7 @@ USE ieee.std_logic_1164.ALL;
 entity mips4edu is
     port(
         clk : in std_logic;
-        reset_a : in std_logic
+        reset_pc : in std_logic
     );
 end entity;
 
@@ -14,7 +14,7 @@ architecture behavior of mips4edu is
 
     component programCounter is
     PORT (
-		clk :in std_logic;
+		clk,reset :in std_logic;
 		programCounterIn   : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
 		programCounterOut  : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
 	);
@@ -166,20 +166,20 @@ architecture behavior of mips4edu is
 
 
     begin
-        PC_IN <= mux_pc_out;
 
         --program counter
         PC:programCounter
         port map(
+            reset => reset_pc,
             clk => clk,
-            programCounterIn => PC_IN,
+            programCounterIn => mux_pc_out,
             programCounterOut => PC_OUT
         );
 
         --instruction memory
         IM:instructionMemory
         PORT map(
-		readAddress => X"00400000",
+		readAddress => PC_OUT,
 		instruction => instruction
 	    );
 
