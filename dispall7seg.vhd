@@ -9,7 +9,6 @@ entity DISPALL7SEG is
 end entity;
 
 architecture RTL of DISPALL7SEG is
-    --component
     component DEC7SEG
     port(
         D :in std_logic_vector(3 downto 0);
@@ -17,7 +16,6 @@ architecture RTL of DISPALL7SEG is
     );
     end component;
 
-    --internal signals
     begin
         
     dec1:DEC7SEG
@@ -57,4 +55,3 @@ architecture RTL of DISPALL7SEG is
     );
     
 end architecture;
-
