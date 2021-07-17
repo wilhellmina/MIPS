@@ -15,7 +15,7 @@ ARCHITECTURE Behavioral OF instructionMemory IS
 		x"01285020", -- 0x0040 0008: add 	$t2, 	$t1, 	$t0
 		x"01285022", -- 0x0040 0004: sub 	$t5, 	$t1, 	$t0
 		x"0149402a", -- 0x0040 0010: slt 	$t0, 	$t2, 	$t1
-		x"1211fffb", -- 0x0040 0014: branchequal 	$s0, 	$s1, 	$L1		(1210fffb for $s1, $s1)
+		x"08100000", -- 0x0040 0014: jump 0x00400000
 		x"01285024", -- 0x0040 0018: and 	$t2, 	$t1, 	$t0
 		x"018b6825", -- 0x0040 001C: or 	$t5, 	$t4, 	$t3
 		x"01285020", -- 0x0040 0020: add 	$t2, 	$t1, 	$t0

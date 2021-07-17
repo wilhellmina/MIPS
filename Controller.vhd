@@ -40,7 +40,7 @@ BEGIN
 				memWrite      <= '0';
 				ALUsrc        <= '1';
 				regWrite      <= '1' AFTER 10 ns;
-			WHEN "101011" => -- store word(beq): 0x2B
+			WHEN "101011" => -- store word(sw): 0x2B
 				regDst        <= 'X'; -- don't care
 				jump          <= '0';
 				branch        <= '0' AFTER 2 ns;

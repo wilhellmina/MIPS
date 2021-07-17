@@ -68,7 +68,6 @@ architecture behavior of mips4edu is
     --component MUX
 
     --signals for register
-    signal inst_mux_zero,inst_mux_one : std_logic_vector(4 downto 0);
     signal writereg : std_logic_vector(4 downto 0);
 
     --signals for ALU
@@ -153,6 +152,9 @@ architecture behavior of mips4edu is
 
     --shiftleft2bit 
     signal shifted2bit :std_logic_vector(31 downto 0);
+    signal jump_operand_shifter_in :std_logic_vector(27 downto 0);
+    signal shiftedinstruction :std_logic_vector(27 downto 0);
+    signal jumpaddress :std_logic_vector(31 downto 0);
     component shiftLeft
     GENERIC (
 		N : INTEGER := 2;
@@ -166,13 +168,12 @@ architecture behavior of mips4edu is
 
 
     begin
-
         --program counter
         PC:programCounter
         port map(
             reset => reset_pc,
             clk => clk,
-            programCounterIn => mux_pc_out,
+            programCounterIn => pc_in,
             programCounterOut => PC_OUT
         );
 
@@ -315,5 +316,30 @@ architecture behavior of mips4edu is
             mux_out => mux_pc_out,
             mux_ctl => ctrl_signal_alu2
         );
+
+
+        jump_operand_shifter:shiftLeft
+        generic map(
+            N=> 2,
+            W => 28
+        )
+        port map(
+            addressIN => jump_operand_shifter_in,
+            addressOUT => shiftedinstruction
+        );
+        jump_operand_shifter_in <= "00" & instruction(25 downto 0);
+        jumpaddress <= added_pc(31 downto 28) & shiftedinstruction;
+
+        mux_pc_jump:MUX
+        generic map(
+            N => 32
+        )
+        port map(
+            mux_in0 => mux_pc_out,
+            mux_in1 => jumpaddress,
+            mux_ctl => jump,
+            mux_out => pc_in
+        );
+
 
     end behavior;
