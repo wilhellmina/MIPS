@@ -63,7 +63,34 @@ BEGIN
 			array_reg(to_integer(unsigned(writeRegister))) <= writeData;
 		END IF;
 	END PROCESS;
-	-- read port
-	readData1 <= array_reg(to_integer(unsigned(readRegister1)));
-	readData2 <= array_reg(to_integer(unsigned(readRegister2)));
+
+	--read port
+	process(readRegister1)
+	begin
+		if(readRegister1 = X"0"& '0') then
+			readData1 <= X"00000000";
+		else
+			readData1 <= array_reg(to_integer(unsigned(readRegister1)));
+		end if;
+	end process;
+
+	--process(readRegister1)
+	--begin
+	--	case readRegister1 is
+	--		when X"0" & '0' => readData1 <= X"00000000";
+	--		when others => readData1 <= array_reg(to_integer(unsigned(readRegister1)));
+	--	end case;
+	--end process;
+
+	process(readRegister2)
+	begin
+		if(readRegister2 = X"0"& '0') then
+			readData2 <= X"00000000";
+		else
+			readData2 <= array_reg(to_integer(unsigned(readRegister2)));
+		end if;
+	end process;
+
+	--readData1 <= array_reg(to_integer(unsigned(readRegister1)));
+	--readData2 <= array_reg(to_integer(unsigned(readRegister2)));
 END Behavioral;

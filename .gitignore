@@ -2,7 +2,7 @@ test/
 output_files/
 db/
 incremental_db/
-simulation/modelsim/
+simulation/modelsim
 .qsys_edit/
-*.bak
+*.bak*
 !*.vhd
