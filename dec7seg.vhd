@@ -14,7 +14,7 @@ architecture RTL of DEC7SEG is
     process(D) is
         begin
         case D is
-            when X"0" => Y <= "1111111";
+            when X"0" => Y <= "1000000";
             when X"1" => Y <= "1111001";
             when X"2" => Y <= "0100100";
             when X"3" => Y <= "0110000";

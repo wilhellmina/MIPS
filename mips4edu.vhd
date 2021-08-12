@@ -3,8 +3,11 @@ USE ieee.std_logic_1164.ALL;
 
 entity mips4edu is
     port(
-        clk : in std_logic;
-        reset_pc : in std_logic
+        CLOCK_50 : in std_logic;
+        RESET_N :in std_logic;
+        HEX0,HEX1,HEX2,HEX3,HEX4,HEX5 : out std_logic_vector(6 downto 0);
+        KEY : in std_logic_vector(3 downto 0);
+        LEDR: out std_logic_vector(9 downto 0)
     );
 end entity;
 
@@ -166,13 +169,52 @@ architecture behavior of mips4edu is
 	);
     end component;
 
+    --4fun
+    component DISPALL7SEG is
+        port(
+            D :in std_logic_vector(23 downto 0);
+            H0,H1,H2,H3,H4,H5 :out std_logic_vector(6 downto 0)
+        );
+    end component;
+
+    signal key_o : std_logic;
+    component keypress_fsm is
+        port(
+            CLK :in std_logic;
+            RST_a :in std_logic;
+            key :in std_logic;
+            key_out :out std_logic
+        );
+    end component;
 
     begin
+        LEDR <= ("00" & X"00");
+
+        kpf:keypress_fsm
+        port map(
+            CLK => CLOCK_50,
+            RST_a => RESET_N,
+            key => NOT key(0),
+            key_out => key_o
+        );
+
+        --instanstiate disp7seg
+        d7s:DISPALL7SEG
+        port map(
+            D => PC_OUT(23 downto 0),
+            H0 => HEX0,
+            H1 => HEX1,
+            H2 => HEX2,
+            H3 => HEX3,
+            H4 => HEX4,
+            H5 => HEX5
+        );
+
         --program counter
         PC:programCounter
         port map(
-            reset => reset_pc,
-            clk => clk,
+            reset => not reset_n,
+            clk => key(0),
             programCounterIn => pc_in,
             programCounterOut => PC_OUT
         );
