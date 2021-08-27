@@ -7,12 +7,13 @@ entity mips4edu is
         RESET_N :in std_logic;
         HEX0,HEX1,HEX2,HEX3,HEX4,HEX5 : out std_logic_vector(6 downto 0);
         KEY : in std_logic_vector(3 downto 0);
+        GPIO_0 :inout std_logic_vector(35 downto 0);
         LEDR: out std_logic_vector(9 downto 0)
     );
 end entity;
 
 architecture behavior of mips4edu is
-    --signal for programcounter interconnect
+    --signals for programcounter interconnect
     signal PC_IN,PC_OUT : std_logic_vector(31 downto 0);
 
     component programCounter is
@@ -33,7 +34,8 @@ architecture behavior of mips4edu is
     end component;
 
     --register and signals
-    signal reg1out,reg2out:std_logic_vector(31 downto 0);
+    signal reg1out,reg2out,reg3out:std_logic_vector(31 downto 0);
+    signal regaddr :std_logic_vector(4 downto 0);
     component registerFile
     GENERIC (
 		B : INTEGER := 32; --number of bits
@@ -46,11 +48,14 @@ architecture behavior of mips4edu is
 		writeData     : IN std_logic_vector (B - 1 DOWNTO 0);
 		registerWrite : IN std_logic;
 		readData1     : OUT std_logic_vector (B - 1 DOWNTO 0);
-		readData2     : OUT std_logic_vector (B - 1 DOWNTO 0)
+		readData2     : OUT std_logic_vector (B - 1 DOWNTO 0);
+
+        readRegister3 :IN std_logic_vector(W -1 downto 0);
+		readData3 : out std_logic_vector(B -1 downto 0)
 	);
     end component;
 
-    --controller and signal for that
+    --controller and signals for that
     signal RegDst,Jump,branch,memRead,memToRegister,memWrite,ALUsrc,regWrite :std_logic;
     signal ALUop :std_logic_vector(1 downto 0);
     component Controller
@@ -121,7 +126,6 @@ architecture behavior of mips4edu is
 	);
     end component;
 
-
     --sign extender
     signal se_out :std_logic_vector(31 downto 0);
     component SignExtender
@@ -187,13 +191,38 @@ architecture behavior of mips4edu is
         );
     end component;
 
+    component uart_proto
+    port(
+        CLK : in std_logic;
+        RST_a : in std_logic;
+
+        tx :out std_logic;
+        rx :in std_logic;
+
+        din :in std_logic_vector(31 downto 0);
+        regaddr :out std_logic_vector(4 downto 0)
+    );
+    end component;
+
     begin
         LEDR <= ("00" & X"00");
+
+        uart0:uart_proto
+        port map(
+            CLK => CLOCK_50,
+            RST_a => not RESET_N,
+
+            tx => GPIO_0(0),
+            rx => GPIO_0(1),
+
+            din => reg3out,
+            regaddr => regaddr
+        );
 
         kpf:keypress_fsm
         port map(
             CLK => CLOCK_50,
-            RST_a => RESET_N,
+            RST_a => not RESET_N,
             key => NOT key(0),
             key_out => key_o
         );
@@ -214,7 +243,7 @@ architecture behavior of mips4edu is
         PC:programCounter
         port map(
             reset => not reset_n,
-            clk => key(0),
+            clk => key_o,
             programCounterIn => pc_in,
             programCounterOut => PC_OUT
         );
@@ -265,7 +294,10 @@ architecture behavior of mips4edu is
 		writeData => mux_datamem_out,
 		registerWrite => RegWrite, --like write enable
 		readData1 => reg1out,
-		readData2 => reg2out
+		readData2 => reg2out,
+
+        readRegister3 => regaddr,
+        readData3 => reg3out
         );
 
         ctrl_alu:ALU_CONTROL

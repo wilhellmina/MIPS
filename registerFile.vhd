@@ -13,7 +13,10 @@ ENTITY registerFile IS
 		writeData     : IN std_logic_vector (B - 1 DOWNTO 0);
 		registerWrite : IN std_logic;
 		readData1     : OUT std_logic_vector (B - 1 DOWNTO 0);
-		readData2     : OUT std_logic_vector (B - 1 DOWNTO 0)
+		readData2     : OUT std_logic_vector (B - 1 DOWNTO 0);
+
+		readRegister3 :IN std_logic_vector(W -1 downto 0);
+		readData3 : out std_logic_vector(B -1 downto 0)
 	);
 END registerFile;
 ARCHITECTURE Behavioral OF registerFile IS
@@ -88,6 +91,15 @@ BEGIN
 			readData2 <= X"00000000";
 		else
 			readData2 <= array_reg(to_integer(unsigned(readRegister2)));
+		end if;
+	end process;
+
+	process(readRegister3)
+	begin
+		if(readRegister3 = X"0" & '0') then
+			readData3 <= X"00000000";
+		else
+		readData3 <= array_reg(to_integer(unsigned(readRegister3)));
 		end if;
 	end process;
 
