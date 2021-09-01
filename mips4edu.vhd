@@ -3,11 +3,14 @@ USE ieee.std_logic_1164.ALL;
 
 entity mips4edu is
     port(
-        CLOCK_50 : in std_logic;
-        RESET_N :in std_logic;
+        clk : in std_logic;
+        rst_a :in std_logic;
         HEX0,HEX1,HEX2,HEX3,HEX4,HEX5 : out std_logic_vector(6 downto 0);
         KEY : in std_logic_vector(3 downto 0);
-        GPIO_0 :inout std_logic_vector(35 downto 0);
+        --GPIO_0 :inout std_logic_vector(35 downto 0);
+        rx : in std_logic;
+        tx : out std_logic;
+
         LEDR: out std_logic_vector(9 downto 0)
     );
 end entity;
@@ -209,11 +212,11 @@ architecture behavior of mips4edu is
 
         uart0:uart_proto
         port map(
-            CLK => CLOCK_50,
-            RST_a => not RESET_N,
+            CLK => CLK,
+            RST_a => rst_a,
 
-            tx => GPIO_0(0),
-            rx => GPIO_0(1),
+            tx => tx,
+            rx => rx,
 
             din => reg3out,
             regaddr => regaddr
@@ -221,9 +224,9 @@ architecture behavior of mips4edu is
 
         kpf:keypress_fsm
         port map(
-            CLK => CLOCK_50,
-            RST_a => not RESET_N,
-            key => NOT key(0),
+            CLK => CLK,
+            RST_a => rst_a,
+            key => key(0),
             key_out => key_o
         );
 
@@ -242,8 +245,8 @@ architecture behavior of mips4edu is
         --program counter
         PC:programCounter
         port map(
-            reset => not reset_n,
-            clk => key_o,
+            reset => rst_a,
+            clk => clk,
             programCounterIn => pc_in,
             programCounterOut => PC_OUT
         );
