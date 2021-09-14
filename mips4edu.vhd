@@ -3,13 +3,14 @@ USE ieee.std_logic_1164.ALL;
 
 entity mips4edu is
     port(
-        clk : in std_logic;
-        rst_a :in std_logic;
+        CLOCK_50 : in std_logic;
+        RESET_N :in std_logic;
         HEX0,HEX1,HEX2,HEX3,HEX4,HEX5 : out std_logic_vector(6 downto 0);
         KEY : in std_logic_vector(3 downto 0);
         --GPIO_0 :inout std_logic_vector(35 downto 0);
-        rx : in std_logic;
-        tx : out std_logic;
+
+        dummy_rx : in std_logic;
+        dummy_tx : out std_logic;
 
         LEDR: out std_logic_vector(9 downto 0)
     );
@@ -207,16 +208,21 @@ architecture behavior of mips4edu is
     );
     end component;
 
+    signal clk_by_human : std_logic;
+    signal rst_active_low : std_logic;
+        
     begin
         LEDR <= ("00" & X"00");
+        clk_by_human <= not KEY(0);
+        rst_active_low <= not RESET_N;
 
         uart0:uart_proto
         port map(
-            CLK => CLK,
-            RST_a => rst_a,
+            CLK => CLOCK_50,
+            RST_a => rst_active_low,
 
-            tx => tx,
-            rx => rx,
+            tx => dummy_tx,
+            rx => dummy_rx,
 
             din => reg3out,
             regaddr => regaddr
@@ -224,8 +230,8 @@ architecture behavior of mips4edu is
 
         kpf:keypress_fsm
         port map(
-            CLK => CLK,
-            RST_a => rst_a,
+            CLK => CLOCK_50,
+            RST_a => rst_active_low,
             key => key(0),
             key_out => key_o
         );
@@ -245,8 +251,8 @@ architecture behavior of mips4edu is
         --program counter
         PC:programCounter
         port map(
-            reset => rst_a,
-            clk => clk,
+            reset => rst_active_low,
+            clk => clk_by_human,
             programCounterIn => pc_in,
             programCounterOut => PC_OUT
         );
