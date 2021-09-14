@@ -7,10 +7,9 @@ entity mips4edu is
         RESET_N :in std_logic;
         HEX0,HEX1,HEX2,HEX3,HEX4,HEX5 : out std_logic_vector(6 downto 0);
         KEY : in std_logic_vector(3 downto 0);
-        --GPIO_0 :inout std_logic_vector(35 downto 0);
 
-        dummy_rx : in std_logic;
-        dummy_tx : out std_logic;
+        rx : in std_logic;
+        tx : out std_logic;
 
         LEDR: out std_logic_vector(9 downto 0)
     );
@@ -221,8 +220,8 @@ architecture behavior of mips4edu is
             CLK => CLOCK_50,
             RST_a => rst_active_low,
 
-            tx => dummy_tx,
-            rx => dummy_rx,
+            tx => tx,
+            rx => rx,
 
             din => reg3out,
             regaddr => regaddr
