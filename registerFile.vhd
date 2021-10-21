@@ -1,6 +1,8 @@
 LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.NUMERIC_STD.ALL;
+
+
 ENTITY registerFile IS
 	GENERIC (
 		B : INTEGER := 32; --number of bits
@@ -16,7 +18,11 @@ ENTITY registerFile IS
 		readData2     : OUT std_logic_vector (B - 1 DOWNTO 0);
 
 		readRegister3 :IN std_logic_vector(W -1 downto 0);
-		readData3 : out std_logic_vector(B -1 downto 0)
+		readData3 : out std_logic_vector(B -1 downto 0);
+
+		we_rpi : in std_logic;
+		w_adr_rpi : in std_logic_vector(W - 1 downto 0);
+		w_data_rpi : in std_logic_vector(B - 1 downto 0)
 	);
 END registerFile;
 ARCHITECTURE Behavioral OF registerFile IS
@@ -57,13 +63,43 @@ ARCHITECTURE Behavioral OF registerFile IS
 		x"eeeeeeee", --$frame pointer
 		x"ffffffff" --$return address
 	);
+
+	signal mux_data : std_logic_vector(31 downto 0);
+	signal mux_adr : std_logic_vector(4 downto 0);
+
+	signal reg_we : std_logic;
+
+	signal mips_ctrl_we : std_logic;
+
 BEGIN
-	PROCESS (registerWrite) -- pulse on write
+	reg_we <= registerWrite OR we_rpi;
+
+	process(we_rpi)
+	begin
+		case we_rpi is
+			when '1' => mips_ctrl_we <= '0';
+			when others => mips_ctrl_we <= registerWrite;
+		end case;
+	end process;
+			
+
+	process(we_rpi,mips_ctrl_we)
+	begin
+		if(we_rpi = '1') then
+			mux_data <= w_data_rpi;
+			mux_adr <= w_adr_rpi;
+		elsif(mips_ctrl_we = '1') then
+			mux_data <= writeData;
+			mux_adr <= writeRegister;
+		end if;
+	end process;
+
+	PROCESS (reg_we) -- pulse on write
 	BEGIN
 		-- writeRegister is the register which we want to write to
 		-- writeData is the data which we dant to save
-		IF (registerWrite = '1') THEN
-			array_reg(to_integer(unsigned(writeRegister))) <= writeData;
+		IF (reg_we = '1') THEN
+			array_reg(to_integer(unsigned(mux_adr))) <= mux_data;
 		END IF;
 	END PROCESS;
 

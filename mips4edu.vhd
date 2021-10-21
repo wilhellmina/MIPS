@@ -8,6 +8,8 @@ entity mips4edu is
         HEX0,HEX1,HEX2,HEX3,HEX4,HEX5 : out std_logic_vector(6 downto 0);
         KEY : in std_logic_vector(3 downto 0);
 
+        GPIO_1 :inout std_logic_vector(35 downto 0);
+
         rx : in std_logic;
         tx : out std_logic;
 
@@ -40,7 +42,7 @@ architecture behavior of mips4edu is
     signal reg1out,reg2out,reg3out:std_logic_vector(31 downto 0);
     signal regaddr :std_logic_vector(4 downto 0);
     component registerFile
-    GENERIC (
+	GENERIC (
 		B : INTEGER := 32; --number of bits
 		W : INTEGER := 5 --number of address bits
 	);
@@ -53,10 +55,14 @@ architecture behavior of mips4edu is
 		readData1     : OUT std_logic_vector (B - 1 DOWNTO 0);
 		readData2     : OUT std_logic_vector (B - 1 DOWNTO 0);
 
-        readRegister3 :IN std_logic_vector(W -1 downto 0);
-		readData3 : out std_logic_vector(B -1 downto 0)
+		readRegister3 :IN std_logic_vector(W -1 downto 0);
+		readData3 : out std_logic_vector(B -1 downto 0);
+
+		we_rpi : in std_logic;
+		w_adr_rpi : in std_logic_vector(W - 1 downto 0);
+		w_data_rpi : in std_logic_vector(B - 1 downto 0)
 	);
-    end component;
+	end component;
 
     --controller and signals for that
     signal RegDst,Jump,branch,memRead,memToRegister,memWrite,ALUsrc,regWrite :std_logic;
@@ -209,11 +215,68 @@ architecture behavior of mips4edu is
 
     signal clk_by_human : std_logic;
     signal rst_active_low : std_logic;
+
+    --i2c slave
+    component i2cSlave
+	generic(
+		DEVICE 		: std_logic_vector(7 downto 0) := x"38"
+	);
+	port(
+		MCLK		: in	std_logic;
+		nRST		: in	std_logic;
+		SDA_IN		: in	std_logic;
+		SCL_IN		: in	std_logic;
+		SDA_OUT		: out	std_logic;
+		SCL_OUT		: out	std_logic;
+		ADDRESS		: out	std_logic_vector(7 downto 0);
+		DATA_OUT	: out	std_logic_vector(31 downto 0);
+		DATA_IN		: in	std_logic_vector(7 downto 0);
+		WR			: out	std_logic;
+		RD			: out	std_logic
+	);
+	end component;
+
+    signal SDA_IN		: std_logic;
+	signal SCL_IN		: std_logic;
+	signal SDA_OUT		: std_logic;
+	signal SCL_OUT		: std_logic;
+
+    signal w_data_rpi : std_logic_vector(31 downto 0);
+    signal w_adr_rpi : std_logic_vector(7 downto 0);
+    signal we_rpi : std_logic;
         
     begin
-        LEDR <= ("00" & X"00");
+        --LEDR <= ("00" & X"00");
+        LEDR <= RegWrite & '0' & X"00";
+
+
         clk_by_human <= not KEY(0);
         rst_active_low <= not RESET_N;
+
+        i2c_reg:I2CSLAVE
+		generic map (
+			DEVICE => x"38"
+		)
+		port map(
+		MCLK => CLOCK_50,
+		nRST => RESET_N,
+		address => w_adr_rpi,
+		DATA_OUT => w_data_rpi,
+		DATA_IN => X"55",
+
+		WR => we_rpi,
+		SDA_IN		=> SDA_IN,
+		SCL_IN		=> SCL_IN,
+		SDA_OUT		=> SDA_OUT,
+		SCL_OUT		=> SCL_OUT
+		);
+
+        GPIO_1(0) <= 'Z' when SCL_OUT='1' else '0';
+		SCL_IN <= to_UX01(GPIO_1(0));
+
+		GPIO_1(1) <= 'Z' when SDA_OUT='1' else '0';
+		SDA_IN <= to_UX01(GPIO_1(1));
+
 
         uart0:uart_proto
         port map(
@@ -305,7 +368,11 @@ architecture behavior of mips4edu is
 		readData2 => reg2out,
 
         readRegister3 => regaddr,
-        readData3 => reg3out
+        readData3 => reg3out,
+
+        we_rpi => we_rpi,
+        w_adr_rpi => w_adr_rpi(4 downto 0),
+        w_data_rpi => w_data_rpi
         );
 
         ctrl_alu:ALU_CONTROL
