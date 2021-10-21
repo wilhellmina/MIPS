@@ -10,7 +10,7 @@ END instructionMemory;
 ARCHITECTURE Behavioral OF instructionMemory IS
 	TYPE RAM_16_x_32 IS ARRAY(0 TO 15) OF std_logic_vector(31 DOWNTO 0);
 	SIGNAL IM : RAM_16_x_32 := (
-		x"01285020", -- 0x0040 0000: and 	$t2, 	$t1, 	$t0
+		x"00000000", -- 0x0040 0000: and 	$t2, 	$t1, 	$t0
 		x"018b6825", -- 0x0040 0004: or 	$t5, 	$t4, 	$t3
 		x"01285020", -- 0x0040 0008: add 	$t2, 	$t1, 	$t0
 		x"01285022", -- 0x0040 0004: sub 	$t5, 	$t1, 	$t0

@@ -9,6 +9,8 @@ ENTITY registerFile IS
 		W : INTEGER := 5 --number of address bits
 	);
 	PORT (
+		CLK : in std_logic;
+
 		readRegister1 : IN std_logic_vector (W - 1 DOWNTO 0);
 		readRegister2 : IN std_logic_vector (W - 1 DOWNTO 0);
 		writeRegister : IN std_logic_vector (W - 1 DOWNTO 0);
@@ -74,12 +76,13 @@ ARCHITECTURE Behavioral OF registerFile IS
 BEGIN
 	reg_we <= registerWrite OR we_rpi;
 
-	process(we_rpi)
+	process(we_rpi,registerWrite)
 	begin
-		case we_rpi is
-			when '1' => mips_ctrl_we <= '0';
-			when others => mips_ctrl_we <= registerWrite;
-		end case;
+		if(we_rpi = '1') then
+			mips_ctrl_we <= '0';
+		else
+			mips_ctrl_we <= registerWrite;
+		end if;
 	end process;
 			
 
@@ -94,12 +97,14 @@ BEGIN
 		end if;
 	end process;
 
-	PROCESS (reg_we) -- pulse on write
+	PROCESS (CLK) -- pulse on write
 	BEGIN
 		-- writeRegister is the register which we want to write to
 		-- writeData is the data which we dant to save
-		IF (reg_we = '1') THEN
+		if rising_edge(CLK) then
+			IF (reg_we = '1') THEN
 			array_reg(to_integer(unsigned(mux_adr))) <= mux_data;
+			end if;
 		END IF;
 	END PROCESS;
 

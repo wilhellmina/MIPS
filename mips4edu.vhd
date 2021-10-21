@@ -8,7 +8,7 @@ entity mips4edu is
         HEX0,HEX1,HEX2,HEX3,HEX4,HEX5 : out std_logic_vector(6 downto 0);
         KEY : in std_logic_vector(3 downto 0);
 
-        GPIO_1 :inout std_logic_vector(35 downto 0);
+        GPIO_1 :inout std_logic_vector(1 downto 0);
 
         rx : in std_logic;
         tx : out std_logic;
@@ -47,6 +47,7 @@ architecture behavior of mips4edu is
 		W : INTEGER := 5 --number of address bits
 	);
 	PORT (
+        CLK : in std_logic;
 		readRegister1 : IN std_logic_vector (W - 1 DOWNTO 0);
 		readRegister2 : IN std_logic_vector (W - 1 DOWNTO 0);
 		writeRegister : IN std_logic_vector (W - 1 DOWNTO 0);
@@ -359,6 +360,7 @@ architecture behavior of mips4edu is
             W => 5
         )
         port map(
+        CLK => CLOCK_50,
         readRegister1 => instruction(25 downto 21),
 		readRegister2 => instruction(20 downto 16),
 		writeRegister => writereg, --from mux ofc 5bit
