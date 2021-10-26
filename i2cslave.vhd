@@ -44,7 +44,7 @@ entity I2CSLAVE is
 		ADDRESS		: out	std_logic_vector(7 downto 0);
 		DATA_OUT	: out	std_logic_vector(31 downto 0);
 		DATA_IN		: in	std_logic_vector(7 downto 0);
-		WR			: out	std_logic;
+		WR			: out	std_logic := '0';
 		RD			: out	std_logic
 	);
 end I2CSLAVE;

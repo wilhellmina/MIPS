@@ -89,7 +89,7 @@ architecture beh of uart_proto is
     signal cnt_half_clock : integer range 0 to 2;
     signal half_clock : std_logic;
 
-    signal previous_din:std_logic_vector(31 downto 0);
+    signal previous_rxd:std_logic_vector(7 downto 0);
     signal rxdata :std_logic_vector(7 downto 0);
     signal dout :std_logic_vector(7 downto 0);
 
@@ -111,14 +111,14 @@ architecture beh of uart_proto is
 
         u0_reg_preval:reg
         generic map(
-            N => 32
+            N => 8
         )
         port map(
             CLK => half_clock,
             RST_a => RST_a,
             LOAD => '1',
-            D => DIN,
-            Q => previous_din
+            D => rxdata,
+            Q => previous_rxd
         );
 
         u1:transfer_fsm
@@ -150,7 +150,7 @@ architecture beh of uart_proto is
         compare_with_preval:process(CLK)
         begin
             if rising_edge(CLK) then
-                if DIN /= previous_din then
+                if rxdata /= previous_rxd then
                     st <= '1';
                 else
                     st <= '0';

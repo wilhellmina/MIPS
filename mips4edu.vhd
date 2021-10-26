@@ -24,6 +24,9 @@ architecture behavior of mips4edu is
     component programCounter is
     PORT (
 		clk,reset :in std_logic;
+        we_rpi : in std_logic;
+		w_pc : in std_logic_vector(31 downto 0);
+
 		programCounterIn   : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
 		programCounterOut  : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
 	);
@@ -239,12 +242,17 @@ architecture behavior of mips4edu is
 
     signal SDA_IN		: std_logic;
 	signal SCL_IN		: std_logic;
-	signal SDA_OUT		: std_logic;
-	signal SCL_OUT		: std_logic;
+	signal SDA_OUT, SDA_OUT2		: std_logic;
+	signal SCL_OUT, SCL_OUT2		: std_logic;
+
+    signal SCL_O,SDA_O :std_logic;
 
     signal w_data_rpi : std_logic_vector(31 downto 0);
     signal w_adr_rpi : std_logic_vector(7 downto 0);
     signal we_rpi : std_logic;
+
+    signal we_pc_rpi : std_logic;
+    signal w_pc_ptr : std_logic_vector(31 downto 0);
         
     begin
         --LEDR <= ("00" & X"00");
@@ -272,12 +280,32 @@ architecture behavior of mips4edu is
 		SCL_OUT		=> SCL_OUT
 		);
 
-        GPIO_1(0) <= 'Z' when SCL_OUT='1' else '0';
+        i2c_pc:I2CSLAVE
+        generic map (
+			DEVICE => x"39"
+		)
+        port map(
+		MCLK => CLOCK_50,
+		nRST => RESET_N,
+        DATA_IN => X"00",
+        DATA_OUT => w_pc_ptr,
+        WR => we_pc_rpi,
+
+        SDA_IN		=> SDA_IN,
+		SCL_IN		=> SCL_IN,
+        SDA_OUT		=> SDA_OUT2,
+		SCL_OUT		=> SCL_OUT2
+        );
+
+        --fanout
+        SCL_O <= NOT(SCL_OUT xor SCL_OUT2);
+		SDA_O <= NOT(SDA_OUT xor SDA_OUT2);
+
+        GPIO_1(0) <= 'Z' when SCL_O='1' else '0';
 		SCL_IN <= to_UX01(GPIO_1(0));
 
-		GPIO_1(1) <= 'Z' when SDA_OUT='1' else '0';
+		GPIO_1(1) <= 'Z' when SDA_O='1' else '0';
 		SDA_IN <= to_UX01(GPIO_1(1));
-
 
         uart0:uart_proto
         port map(
@@ -316,6 +344,9 @@ architecture behavior of mips4edu is
         port map(
             reset => rst_active_low,
             clk => clk_by_human,
+            we_rpi => we_pc_rpi,
+		    w_pc => w_pc_ptr,
+
             programCounterIn => pc_in,
             programCounterOut => PC_OUT
         );
