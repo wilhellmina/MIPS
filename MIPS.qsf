@@ -498,7 +498,6 @@ set_global_assignment -name VHDL_FILE tx.vhd
 set_global_assignment -name VHDL_FILE transfer_fsm.vhd
 set_global_assignment -name VHDL_FILE rx.vhd
 set_global_assignment -name VHDL_FILE clk_generator.vhd
-set_global_assignment -name VHDL_FILE gpio_test.vhd
 set_global_assignment -name VHDL_FILE mips4edu.vhd
 set_global_assignment -name VHDL_FILE reg.vhd
 set_global_assignment -name VHDL_FILE keypress_fsm.vhd
@@ -513,7 +512,6 @@ set_global_assignment -name VHDL_FILE dataMemory.vhd
 set_global_assignment -name VHDL_FILE Controller.vhd
 set_global_assignment -name VHDL_FILE alu_control.vhd
 set_global_assignment -name VHDL_FILE ALU.vhd
-set_global_assignment -name VHDL_FILE mem_test.vhd
 set_global_assignment -name VHDL_FILE disphex.vhd
 set_global_assignment -name VHDL_FILE dispall7seg.vhd
 set_global_assignment -name VHDL_FILE dec7seg.vhd
