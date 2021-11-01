@@ -86,8 +86,6 @@ architecture behavior of mips4edu is
 	);
     end component;
     
-    --component MUX
-
     --signals for register
     signal writereg : std_logic_vector(4 downto 0);
 
@@ -499,7 +497,6 @@ architecture behavior of mips4edu is
             mux_ctl => ctrl_signal_alu2
         );
 
-
         jump_operand_shifter:shiftLeft
         generic map(
             N=> 2,
@@ -522,6 +519,4 @@ architecture behavior of mips4edu is
             mux_ctl => jump,
             mux_out => pc_in
         );
-
-
     end behavior;
