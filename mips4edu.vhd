@@ -12,7 +12,7 @@ entity mips4edu is
 
         rx : in std_logic;
         tx : out std_logic;
-
+        
         LEDR: out std_logic_vector(9 downto 0)
     );
 end entity;
